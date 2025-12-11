@@ -1,0 +1,38 @@
+{
+  "name": "jobvibe-admin-backend",
+  "version": "1.0.0",
+  "description": "Backend for JobVibe Admin Panel",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "jest",
+    "seed:admin": "node src/seeder/create_admin.js"
+  },
+  "keywords": [
+    "jobvibe",
+    "admin",
+    "backend",
+    "nodejs",
+    "express"
+  ],
+  "author": "Your Name",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "firebase-admin": "^13.5.0",
+    "fs-extra": "^11.3.2",
+    "handlebars": "^4.7.8",
+    "joi": "^18.0.1",
+    "mongoose": "^8.18.3",
+    "multer": "^2.0.2",
+    "nodemailer": "^7.0.6"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.1"
+  }
+}

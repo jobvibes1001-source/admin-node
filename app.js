@@ -1,11 +1,28 @@
+console.log("🚀 Starting JobVibe Admin Backend...");
+console.log(`📦 Node version: ${process.version}`);
+console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const mongoose = require("mongoose");
-const router = require("./src/api/router");
 
 const app = express();
+console.log("✅ Express app initialized");
+
+// Load router with error handling
+let router;
+try {
+  router = require("./src/api/router");
+} catch (error) {
+  console.error("❌ Failed to load router:", error);
+  // Create a minimal router to allow server to start
+  router = express.Router();
+  router.get("*", (req, res) => {
+    res.status(500).json({ error: "Router initialization failed", message: error.message });
+  });
+}
 
 // Enable CORS
 app.use(cors());
@@ -47,14 +64,49 @@ app.use("/uploads", express.static(path.resolve("uploads")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Health check endpoint (required by Cloud Run)
+app.get("/health", (req, res) => {
+  res.status(200).json({ 
+    status: "ok", 
+    timestamp: new Date().toISOString(),
+    mongodb: mongoose.connection.readyState === 1 ? "connected" : "disconnected"
+  });
+});
+
 // Routes
 app.use("/api", router);
 
-// Start server
-const PORT = process.env.NODE_PORT || process.env.PORT || 3001;
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+// Root endpoint
+app.get("/", (req, res) => {
+  res.status(200).json({ 
+    message: "JobVibe Admin Backend API",
+    status: "running"
+  });
 });
+
+// Start server
+const PORT = process.env.PORT || process.env.NODE_PORT || 3001;
+const HOST = process.env.HOST || '0.0.0.0';
+
+let server;
+try {
+  server = app.listen(PORT, HOST, () => {
+    console.log(`🚀 Server running on ${HOST}:${PORT}`);
+    console.log(`📡 Health check available at http://${HOST}:${PORT}/health`);
+  });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`❌ Port ${PORT} is already in use`);
+    } else {
+      console.error('❌ Server error:', err);
+    }
+    process.exit(1);
+  });
+} catch (error) {
+  console.error('❌ Failed to start server:', error);
+  process.exit(1);
+}
 
 // Graceful shutdown
 async function cleanup(signal) {
